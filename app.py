@@ -43,12 +43,30 @@ color_palette = px.colors.qualitative.Safe  # Safe for colorblind users
 global_color_map = {airline: color_palette[i % len(color_palette)] for i, airline in enumerate(unique_airlines)}
 
 # App layout
-app.layout = html.Div([
-    html.H1("Airline Market Visualization Dashboard", style={'textAlign': 'center'}),
+app.layout = html.Div(
+     style={
+        'backgroundImage': 'url("https://i.pinimg.com/1200x/f5/af/38/f5af38611cd1bda1f68876a13bb6436e.jpg")',
+        'backgroundSize': 'cover',
+        'backgroundPosition': 'center',
+        'minHeight': '100vh',
+        'padding': '20px',
+    },
+    children=[
+    html.H1("Airline Market Visualization Dashboard",
+            style={
+                'textAlign': 'center',
+                'color': 'white',
+                'textShadow': '2px 2px 4px #000000',
+            }),
 
     # Section 1
     html.Div([
-        html.H2("Section 1: Default Visualizations", style={'textAlign': 'center'}),
+        html.H2("Section 1: Default Visualizations",
+                style={
+                'textAlign': 'center',
+                'color': 'white',
+                'textShadow': '2px 2px 4px #000000',
+            }),
         dcc.Tabs(id="section1-tabs", value='tab1', children=[
             dcc.Tab(label='Yearly Fare Trend', value='tab1'),
             dcc.Tab(label='Average Fare by Airline', value='tab2'),
@@ -58,11 +76,16 @@ app.layout = html.Div([
             dcc.Tab(label='Geographic Route Map', value='tab6'),
         ]),
         html.Div(id='section1-tabs-content'),
-    ]),
+    ],style={'backgroundColor': 'rgba(255, 255, 255, 0.8)', 'borderRadius': '10px', 'padding': '15px'}),
 
     # Section 2
     html.Div([
-        html.H2("Section 2: Filtered Visualizations", style={'textAlign': 'center'}),
+        html.H2("Section 2: Filtered Visualizations",
+                style={
+                'textAlign': 'center',
+                'color': 'white',
+                'textShadow': '2px 2px 4px #000000',
+            }),
         html.Label("Select Airlines to Filter:"),
         dcc.Dropdown(
             id='airline-dropdown',
@@ -75,9 +98,18 @@ app.layout = html.Div([
             dcc.Tab(label='Average Fare Per Airline (Separate Lines)', value='tab8'),
             dcc.Tab(label='Filtered Yearly Market Share', value='tab9'),
 
-        ]),
+        ], style={'backgroundColor': 'rgba(255, 255, 255, 0.8)', 'borderRadius': '10px', 'padding': '15px'}),
         html.Div(id='section2-tabs-content'),
-    ], style={'marginTop': '20px'})
+    ], style={'marginTop': '20px'}),
+
+        # Footer
+    html.Div([
+        html.P(
+            "Powered by Dash | Data Source: Airline Statistics - Kaggle | © Amritha Prakash. All rights reserved.",
+            style={'textAlign': 'center', 'color': 'white'}
+        )
+    ], style={'marginTop': '30px', 'padding': '10px', 'backgroundColor': '#0D47A1'})     
+     
 ])
 
 # Section 1: Callback for rendering default tabs content
@@ -465,7 +497,7 @@ def render_section2_content(tab, selected_airlines):
         fig = px.bar(filtered_data, x='Year', y='large_ms', color='carrier_full',
                      title='Filtered Yearly Market Share by Airline',
                      labels={'large_ms': 'Market Share (%)', 'Year': 'Year', 'carrier_full': 'Airline'},
-                     color_discrete_map=global_color_map, 
+                     color_discrete_map=global_color_map,
                      category_orders={'carrier_full': list(airline_order)})
         return html.Div([dcc.Graph(figure=fig)])
 
