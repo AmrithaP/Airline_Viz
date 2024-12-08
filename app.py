@@ -31,7 +31,6 @@ top_5_routes = route_data.sort_values(by='passengers', ascending=False).head(5)
 # Initialize Dash app
 app = dash.Dash(__name__)
 server = app.server
-
 app.title = "Airline Market Analysis"
 
 # App layout
@@ -56,27 +55,37 @@ app.layout = html.Div([
 def render_tab_content(tab):
     if tab == 'tab1':  # Yearly Fare Trend
         fig = px.line(
-            yearly_data, x='Year', y='fare',
-            title='Average Fare Over Time (Yearly)',
-            labels={'fare': 'Average Fare ($)', 'Year': 'Year'}
+        yearly_data, x='Year', y='fare',
+        title='Average Fare Over Time (Yearly)',
+        labels={'fare': 'Average Fare ($)', 'Year': 'Year'}
         )
+        # Add annotations for key events
+        fig.add_annotation(x=2020, y=yearly_data[yearly_data['Year'] == 2020]['fare'].values[0],
+                          text="COVID-19 Impact", showarrow=True, arrowhead=1)
+        fig.add_annotation(x=2008, y=yearly_data[yearly_data['Year'] == 2008]['fare'].values[0],
+                          text="2008 Financial Crisis", showarrow=True, arrowhead=1)
         fig.update_layout(hovermode="x unified")
         return dcc.Graph(figure=fig)
 
+
     elif tab == 'tab2':  # Average Fare by Airline
         fig = px.line(
-            airline_yearly_data, x='Year', y='fare', color='carrier_full',
-            title='Average Fare Over Time by Airline',
-            labels={'fare': 'Average Fare ($)', 'Year': 'Year', 'carrier_full': 'Airline'}
+        airline_yearly_data, x='Year', y='fare', color='carrier_full',
+        title='Average Fare Over Time by Airline',
+        labels={'fare': 'Average Fare ($)', 'Year': 'Year', 'carrier_full': 'Airline'}
         )
-
-        # Add dropdown for filtering airlines
+        # Add industry average line
+        industry_avg = yearly_data[['Year', 'fare']].rename(columns={'fare': 'Industry Average Fare'})
+        fig.add_trace(
+            go.Scatter(x=industry_avg['Year'], y=industry_avg['Industry Average Fare'],
+                      mode='lines', name='Industry Average', line=dict(dash='dash', color='black'))
+        )
+        # Dropdown for filtering airlines (unchanged)
         dropdown_buttons = [{'label': 'All Airlines', 'method': 'update', 'args': [{'visible': [True] * len(fig.data)}]}]
         for i, airline in enumerate(airline_yearly_data['carrier_full'].unique()):
             visible = [False] * len(fig.data)
             visible[i] = True
             dropdown_buttons.append({'label': airline, 'method': 'update', 'args': [{'visible': visible}]})
-
         fig.update_layout(updatemenus=[{
             'buttons': dropdown_buttons,
             'direction': 'down',
@@ -90,9 +99,19 @@ def render_tab_content(tab):
 
     elif tab == 'tab3':  # Quarterly Fare Trends
         fig = px.line(
-            df_airline, x='quarter', y='fare', color='Year',
-            title='Quarterly Fare Trends (with Interpolation)',
-            labels={'fare': 'Average Fare ($)', 'quarter': 'Quarter'}
+        df_airline, x='quarter', y='fare', color='Year',
+        title='Quarterly Fare Trends (with Interpolation)',
+        labels={'fare': 'Average Fare ($)', 'quarter': 'Quarter'}
+        )
+        # Add slider for years
+        years = sorted(df_airline['Year'].unique())
+        fig.update_layout(
+            sliders=[{
+                'active': 0,
+                'currentvalue': {'prefix': 'Year: '},
+                'pad': {'t': 50},
+                'steps': [{'label': str(year), 'method': 'update', 'args': [{'visible': [year == yr for yr in years]}]} for year in years]
+            }]
         )
         fig.update_layout(hovermode="x unified")
         return dcc.Graph(figure=fig)
@@ -100,13 +119,22 @@ def render_tab_content(tab):
 
     elif tab == 'tab4':  # Yearly Market Share
         fig = px.bar(
-            market_data, x='Year', y='large_ms', color='carrier_full',
-            title='Market Share by Airline (Yearly)',
-            labels={'large_ms': 'Market Share (%)', 'Year': 'Year', 'carrier_full': 'Airline'}
+        market_data, x='Year', y='large_ms', color='carrier_full',
+        title='Market Share by Airline (Yearly)',
+        labels={'large_ms': 'Market Share (%)', 'Year': 'Year', 'carrier_full': 'Airline'},
+        color_discrete_sequence=px.colors.qualitative.Set1  # Adjust color intensity
         )
+        # Add annotations for airlines with the largest market share in specific years
+        for year in market_data['Year'].unique():
+            max_airline = market_data[market_data['Year'] == year].nlargest(1, 'large_ms')
+            fig.add_annotation(
+                x=year, y=max_airline['large_ms'].values[0],
+                text=f"Top Airline: {max_airline['carrier_full'].values[0]}",
+                showarrow=True, arrowhead=2, ax=0, ay=-30
+            )
         fig.update_layout(barmode='stack')
         return dcc.Graph(figure=fig)
-
+        
 
     elif tab == 'tab5':  # Quarterly Market Share by Airline with Slider
         fig = go.Figure()
@@ -167,13 +195,13 @@ def render_tab_content(tab):
             yaxis_title='Market Share (%)',
             barmode='stack'
         )
-
         return dcc.Graph(figure=fig)
 
 
 
     elif tab == 'tab6':  # Geographic Route Map
         fig = go.Figure()
+
         for _, row in top_5_routes.iterrows():
             fig.add_trace(go.Scattergeo(
                 locationmode='USA-states',
@@ -181,9 +209,12 @@ def render_tab_content(tab):
                 lat=[row['lat1'], row['lat2']],
                 mode='lines',
                 name=f"{row['city1']} to {row['city2']}",
-                line=dict(width=1, color="blue"),
-                opacity=0.7
+                line=dict(width=row['passengers'] / 100000, color="blue"),  # Adjust width based on passenger volume
+                opacity=0.7,
+                hoverinfo='text',
+                text=f"{row['city1']} to {row['city2']}: {row['passengers']} passengers"
             ))
+
         fig.update_layout(
             title="Top 5 Routes by Passenger Volume",
             geo=dict(scope="usa", showland=True, landcolor="lightgrey")
