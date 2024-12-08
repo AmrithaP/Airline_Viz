@@ -416,7 +416,9 @@ def render_section2_content(tab, selected_airlines):
         filtered_data = df_airline[df_airline['carrier_full'].isin(selected_airlines)] if selected_airlines else df_airline
         yearly_filtered_data = filtered_data.groupby(['Year']).agg({'fare': 'mean'}).reset_index()
         fig = px.line(yearly_filtered_data, x='Year', y='fare', title='Filtered Average Fare Over Time (Yearly)',
-                      labels={'fare': 'Average Fare ($)', 'Year': 'Year'})
+                      labels={'fare': 'Average Fare ($)', 'Year': 'Year'},
+                      color_discrete_map=global_color_map
+                      )
         return html.Div([dcc.Graph(figure=fig)])
 
     elif tab == 'tab8':  # Average Fare Line Plot for Each Selected Airline
@@ -463,7 +465,8 @@ def render_section2_content(tab, selected_airlines):
         fig = px.bar(filtered_data, x='Year', y='large_ms', color='carrier_full',
                      title='Filtered Yearly Market Share by Airline',
                      labels={'large_ms': 'Market Share (%)', 'Year': 'Year', 'carrier_full': 'Airline'},
-                     color_discrete_map=global_color_map, category_orders={'carrier_full': list(airline_order)})
+                     color_discrete_map=global_color_map, 
+                     category_orders={'carrier_full': list(airline_order)})
         return html.Div([dcc.Graph(figure=fig)])
 
     return html.Div("Content Not Available.")
