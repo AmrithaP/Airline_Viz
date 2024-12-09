@@ -107,7 +107,19 @@ app.layout = html.Div(
         html.P(
             "Powered by Dash | Data Source: Airline Statistics - Kaggle | © Amritha Prakash. All rights reserved.",
             style={'textAlign': 'center', 'color': 'white'}
-        )
+        ),
+    html.A(
+        "Kaltura Link: Watch Recording Here",
+        href="https://indiana-my.sharepoint.com/:v:/g/personal/amriprak_iu_edu/Ed2CEn5E_5pDmxdqAlb63qkB6VeunUhBi-kuXesr0y0ipw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D&e=jTosID",  
+        style={
+            'textAlign': 'center',
+            'color': 'white',
+            'textDecoration': 'underline',
+            'display': 'block',
+            'marginTop': '10px'
+        },
+        target="_blank"  # Opens the link in a new tab
+    )
     ], style={'marginTop': '30px', 'padding': '10px', 'backgroundColor': '#0D47A1'})     
      
 ])
